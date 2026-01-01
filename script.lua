@@ -1,12 +1,5 @@
 --[[
-    TITANIUM V4 - REDEMPTION EDITION (FIXED & IMPROVED)
-    "The one that actually works and looks like iOS"
-
-    Changes:
-    - Fixed Title overlap: Title text now truncates and scales to avoid overlapping with tabs.
-    - Fixed Corner Rounding: Main frame now correctly clips descendants, ensuring rounded corners.
-    - Fixed Shadow: Shadow is now rounded to match the frame and is less intense.
-    - Improved Mobile Support: Better positioning and sizing for mobile devices.
+    TITANIUM V4 - NO SHADOW & SCROLL FIX EDITION
 ]]
 
 local InputService = game:GetService("UserInputService")
@@ -23,14 +16,14 @@ local Mouse = Player:GetMouse()
 local Titanium = {
     Settings = {
         Colors = {
-            Main = Color3.fromRGB(28, 28, 30), -- iOS Dark Mode Background
-            Sidebar = Color3.fromRGB(36, 36, 38), -- Slightly lighter
-            Element = Color3.fromRGB(44, 44, 46), -- Element BG
+            Main = Color3.fromRGB(28, 28, 30),
+            Sidebar = Color3.fromRGB(36, 36, 38),
+            Element = Color3.fromRGB(44, 44, 46),
             Text = Color3.fromRGB(255, 255, 255),
             TextDim = Color3.fromRGB(160, 160, 165),
             Stroke = Color3.fromRGB(60, 60, 65),
             Divider = Color3.fromRGB(50, 50, 55),
-            Accent = Color3.fromRGB(10, 132, 255), -- iOS Blue
+            Accent = Color3.fromRGB(10, 132, 255),
             Green = Color3.fromRGB(48, 209, 88),
             Red = Color3.fromRGB(255, 69, 58)
         },
@@ -68,25 +61,8 @@ function Utility:Create(class, props, children)
 end
 
 function Utility:AddShadow(frame, transparency)
-    -- Increased transparency for a less intense shadow
-    local shadowTransparency = transparency or 0.7 
-    local Shadow = Utility:Create("ImageLabel", {
-        Name = "Shadow",
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0.5, 4),
-        Size = UDim2.new(1, 40, 1, 40),
-        ZIndex = 0,
-        Image = "rbxassetid://1316045217",
-        ImageColor3 = Color3.fromRGB(0,0,0),
-        ImageTransparency = shadowTransparency,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(10, 10, 118, 118),
-        Parent = frame
-    })
-    -- Add rounding to the shadow itself
-    Utility:Create("UICorner", {CornerRadius = UDim.new(0, 18), Parent = Shadow})
-    return Shadow
+    -- FIX: Schatten komplett deaktiviert
+    return nil 
 end
 
 function Utility:Ripple(obj)
@@ -103,7 +79,6 @@ function Utility:Ripple(obj)
         })
         
         local Size = math.max(obj.AbsoluteSize.X, obj.AbsoluteSize.Y) * 1.5
-        -- Calculate position relative to object
         local relativeX = Mouse.X - obj.AbsolutePosition.X
         local relativeY = Mouse.Y - obj.AbsolutePosition.Y
         
@@ -142,7 +117,6 @@ function Titanium:Window(Config)
     end
 
     -- // MAIN FRAME //
-    -- Using CanvasGroup for that crisp Corner Clipping
     local Main = Utility:Create("CanvasGroup", {
         Name = "Main",
         Size = UDim2.new(0, 650, 0, 420),
@@ -153,13 +127,11 @@ function Titanium:Window(Config)
         Parent = GUI
     })
     
-    -- Mobile Sizing
     if IsMobile then
         Main.Size = UDim2.new(0, 500, 0, 320)
         Main.Position = UDim2.new(0.5, -250, 0.5, -160)
     end
     
-    -- Styling
     Utility:Create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = Main})
     Utility:Create("UIStroke", {
         Color = Titanium.Settings.Colors.Stroke, 
@@ -169,7 +141,7 @@ function Titanium:Window(Config)
         Parent = Main
     })
     
-    -- Shadow (Behind Main)
+    -- Shadow Holder (leer, da Schatten deaktiviert)
     local MainShadow = Utility:Create("Frame", {
         Name = "ShadowHolder",
         BackgroundTransparency = 1,
@@ -178,21 +150,17 @@ function Titanium:Window(Config)
         ZIndex = -1,
         Parent = GUI
     })
-    -- Increased transparency and added rounding to shadow
-    Utility:AddShadow(MainShadow, 0.7)
-
+    
     -- // SIDEBAR //
     local Sidebar = Utility:Create("Frame", {
         Name = "Sidebar",
         Size = UDim2.new(0, 170, 1, 0),
         BackgroundColor3 = Titanium.Settings.Colors.Sidebar,
         BorderSizePixel = 0,
-        -- Important for rounded corners on the left side
         ClipsDescendants = true,
         Parent = Main
     })
     
-    -- Sidebar Divider
     Utility:Create("Frame", {
         Size = UDim2.new(0, 1, 1, 0),
         Position = UDim2.new(1, 0, 0, 0),
@@ -201,18 +169,15 @@ function Titanium:Window(Config)
         Parent = Sidebar
     })
     
-    -- App Title
     local AppTitle = Utility:Create("TextLabel", {
         Text = Title,
         Font = Titanium.Settings.Font.Bold,
         TextColor3 = Titanium.Settings.Colors.Text,
         TextSize = 18,
-        -- Adjusted size to prevent overlap and allow truncation
         Size = UDim2.new(1, -30, 0, 60),
         Position = UDim2.new(0, 20, 0, 0),
         BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
-        -- Truncate text if it's too long
         TextTruncate = Enum.TextTruncate.AtEnd,
         Parent = Sidebar
     })
@@ -238,7 +203,6 @@ function Titanium:Window(Config)
         Size = UDim2.new(1, -170, 1, 0),
         Position = UDim2.new(0, 170, 0, 0),
         BackgroundTransparency = 1,
-        -- Important for rounded corners on the right side
         ClipsDescendants = true,
         Parent = Main
     })
@@ -278,7 +242,6 @@ function Titanium:Window(Config)
         local MobBtn = Utility:Create("ImageButton", {
             Name = "MobileToggle",
             Size = UDim2.new(0, 45, 0, 45),
-            -- Adjusted position for better mobile access
             Position = UDim2.new(0, 20, 0.2, 0),
             BackgroundColor3 = Titanium.Settings.Colors.Sidebar,
             Image = Icons.List,
@@ -287,20 +250,17 @@ function Titanium:Window(Config)
         })
         Utility:Create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = MobBtn})
         Utility:Create("UIStroke", {Color = Titanium.Settings.Colors.Stroke, Thickness = 1, Parent = MobBtn})
-        Utility:AddShadow(MobBtn, 0.5)
         
         local open = true
         MobBtn.MouseButton1Click:Connect(function()
             open = not open
             Main.Visible = open
-            MainShadow.Visible = open
         end)
     end
 
     -- // NOTIFICATION SYSTEM //
     local NotifyHolder = Utility:Create("Frame", {
         Size = UDim2.new(0, 280, 1, 0),
-        -- Adjusted position for mobile
         Position = IsMobile and UDim2.new(1, -290, 0, 60) or UDim2.new(1, -290, 0, 20),
         BackgroundTransparency = 1,
         Parent = GUI
@@ -322,7 +282,6 @@ function Titanium:Window(Config)
         })
         Utility:Create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = NFrame})
         Utility:Create("UIStroke", {Color = Titanium.Settings.Colors.Stroke, Thickness = 1, Parent = NFrame})
-        Utility:AddShadow(NFrame, 0.4)
         
         local NTit = Utility:Create("TextLabel", {
             Text = data.Title or "Alert",
@@ -370,7 +329,7 @@ function Titanium:Window(Config)
         -- Tab Button
         local TabBtn = Utility:Create("TextButton", {
             Size = UDim2.new(0, 150, 0, 36),
-            BackgroundColor3 = Titanium.Settings.Colors.Sidebar, -- start transparent-ish
+            BackgroundColor3 = Titanium.Settings.Colors.Sidebar,
             BackgroundTransparency = 1,
             Text = "",
             Parent = TabContainer
@@ -395,7 +354,6 @@ function Titanium:Window(Config)
             Position = UDim2.new(0, 40, 0, 0),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Left,
-            -- Truncate text if too long
             TextTruncate = Enum.TextTruncate.AtEnd,
             Parent = TabBtn
         })
@@ -408,7 +366,7 @@ function Titanium:Window(Config)
             ScrollBarThickness = 2,
             ScrollBarImageColor3 = Titanium.Settings.Colors.Accent,
             Visible = false,
-            ClipsDescendants = false, -- Allow shadows from elements to show
+            ClipsDescendants = false,
             Parent = Content
         })
         local PageLayout = Utility:Create("UIListLayout", {
@@ -470,9 +428,9 @@ function Titanium:Window(Config)
             local selected = default or options[1]
             local isOpened = false
             
-            -- Container Frame (wird größer beim Öffnen)
+            -- FIX: Width from 1,0 to 1,-12 for scrollbar space
             local DropFrame = Utility:Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 40), -- Standardhöhe geschlossen
+                Size = UDim2.new(1, -12, 0, 40), 
                 BackgroundColor3 = Titanium.Settings.Colors.Element,
                 ClipsDescendants = true,
                 Parent = Page
@@ -505,7 +463,7 @@ function Titanium:Window(Config)
             })
 
             local Arrow = Utility:Create("ImageLabel", {
-                Image = "rbxassetid://6034818372", -- Pfeil Icon
+                Image = "rbxassetid://6034818372",
                 Size = UDim2.new(0, 20, 0, 20),
                 Position = UDim2.new(1, -25, 0, 10),
                 BackgroundTransparency = 1,
@@ -520,9 +478,8 @@ function Titanium:Window(Config)
                 Parent = DropFrame
             })
 
-            -- Option List Container
             local OptionList = Utility:Create("ScrollingFrame", {
-                Size = UDim2.new(1, -10, 0, 0), -- Startet bei 0 Höhe
+                Size = UDim2.new(1, -10, 0, 0),
                 Position = UDim2.new(0, 5, 0, 45),
                 BackgroundTransparency = 1,
                 ScrollBarThickness = 2,
@@ -536,7 +493,6 @@ function Titanium:Window(Config)
                 Parent = OptionList
             })
 
-            -- Optionen erstellen
             for _, opt in pairs(options) do
                 local OptBtn = Utility:Create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 30),
@@ -554,27 +510,28 @@ function Titanium:Window(Config)
                     StatusLabel.Text = selected
                     callback(selected)
                     
-                    -- Schließen nach Auswahl
                     isOpened = false
-                    TweenService:Create(DropFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+                    -- FIX: Close to reduced width
+                    TweenService:Create(DropFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, -12, 0, 40)}):Play()
                     TweenService:Create(Arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
                 end)
             end
 
-            -- Öffnen/Schließen Logik
             Trigger.MouseButton1Click:Connect(function()
                 isOpened = not isOpened
                 local targetHeight = isOpened and math.min(#options * 35 + 50, 200) or 40
                 
-                TweenService:Create(DropFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(1, 0, 0, targetHeight)}):Play()
+                -- FIX: Open to reduced width
+                TweenService:Create(DropFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(1, -12, 0, targetHeight)}):Play()
                 TweenService:Create(OptionList, TweenInfo.new(0.3), {Size = UDim2.new(1, -10, 1, -50)}):Play()
                 TweenService:Create(Arrow, TweenInfo.new(0.3), {Rotation = isOpened and 180 or 0}):Play()
             end)
         end
 
         function TabFuncs:Button(text, callback)
+            -- FIX: Width from 1,0 to 1,-12 for scrollbar space
             local BtnFrame = Utility:Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, -12, 0, 40),
                 BackgroundColor3 = Titanium.Settings.Colors.Element,
                 Parent = Page
             })
@@ -600,19 +557,20 @@ function Titanium:Window(Config)
             Trigger.MouseButton1Click:Connect(function()
                 Utility:Ripple(BtnFrame)
                 callback()
-                -- Bounce Effect
-                local t1 = TweenService:Create(BtnFrame, TweenInfo.new(0.1), {Size = UDim2.new(1, -4, 0, 36)})
+                local t1 = TweenService:Create(BtnFrame, TweenInfo.new(0.1), {Size = UDim2.new(1, -16, 0, 36)})
                 t1:Play()
                 t1.Completed:Wait()
-                TweenService:Create(BtnFrame, TweenInfo.new(0.3, Enum.EasingStyle.Elastic), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+                -- FIX: Bounce back to reduced width
+                TweenService:Create(BtnFrame, TweenInfo.new(0.3, Enum.EasingStyle.Elastic), {Size = UDim2.new(1, -12, 0, 40)}):Play()
             end)
         end
 
         function TabFuncs:Toggle(text, default, callback)
             local toggled = default or false
             
+            -- FIX: Width from 1,0 to 1,-12 for scrollbar space
             local TogFrame = Utility:Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, -12, 0, 40),
                 BackgroundColor3 = Titanium.Settings.Colors.Element,
                 Parent = Page
             })
@@ -669,8 +627,9 @@ function Titanium:Window(Config)
         function TabFuncs:Slider(text, min, max, default, callback)
             local value = default or min
             
+            -- FIX: Width from 1,0 to 1,-12 for scrollbar space
             local SFrame = Utility:Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 60),
+                Size = UDim2.new(1, -12, 0, 60),
                 BackgroundColor3 = Titanium.Settings.Colors.Element,
                 Parent = Page
             })
