@@ -466,6 +466,112 @@ function Titanium:Window(Config)
             })
         end
 
+        function TabFuncs:Dropdown(text, options, default, callback)
+            local selected = default or options[1]
+            local isOpened = false
+            
+            -- Container Frame (wird größer beim Öffnen)
+            local DropFrame = Utility:Create("Frame", {
+                Size = UDim2.new(1, 0, 0, 40), -- Standardhöhe geschlossen
+                BackgroundColor3 = Titanium.Settings.Colors.Element,
+                ClipsDescendants = true,
+                Parent = Page
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = DropFrame})
+            
+            local Label = Utility:Create("TextLabel", {
+                Text = text,
+                Font = Titanium.Settings.Font.Medium,
+                TextSize = 13,
+                TextColor3 = Titanium.Settings.Colors.Text,
+                Size = UDim2.new(1, -40, 0, 40),
+                Position = UDim2.new(0, 12, 0, 0),
+                BackgroundTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = DropFrame
+            })
+            
+            local StatusLabel = Utility:Create("TextLabel", {
+                Text = selected,
+                Font = Titanium.Settings.Font.Bold,
+                TextSize = 13,
+                TextColor3 = Titanium.Settings.Colors.Accent,
+                Size = UDim2.new(0, 100, 0, 40),
+                Position = UDim2.new(1, -30, 0, 0),
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                Parent = DropFrame
+            })
+
+            local Arrow = Utility:Create("ImageLabel", {
+                Image = "rbxassetid://6034818372", -- Pfeil Icon
+                Size = UDim2.new(0, 20, 0, 20),
+                Position = UDim2.new(1, -25, 0, 10),
+                BackgroundTransparency = 1,
+                ImageColor3 = Titanium.Settings.Colors.TextDim,
+                Parent = DropFrame
+            })
+            
+            local Trigger = Utility:Create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 40),
+                BackgroundTransparency = 1,
+                Text = "",
+                Parent = DropFrame
+            })
+
+            -- Option List Container
+            local OptionList = Utility:Create("ScrollingFrame", {
+                Size = UDim2.new(1, -10, 0, 0), -- Startet bei 0 Höhe
+                Position = UDim2.new(0, 5, 0, 45),
+                BackgroundTransparency = 1,
+                ScrollBarThickness = 2,
+                ScrollBarImageColor3 = Titanium.Settings.Colors.Accent,
+                Parent = DropFrame
+            })
+            
+            local ListLayout = Utility:Create("UIListLayout", {
+                Padding = UDim.new(0, 5),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = OptionList
+            })
+
+            -- Optionen erstellen
+            for _, opt in pairs(options) do
+                local OptBtn = Utility:Create("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 30),
+                    BackgroundColor3 = Titanium.Settings.Colors.Sidebar,
+                    Text = opt,
+                    Font = Titanium.Settings.Font.Medium,
+                    TextColor3 = Titanium.Settings.Colors.TextDim,
+                    TextSize = 12,
+                    Parent = OptionList
+                })
+                Utility:Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = OptBtn})
+                
+                OptBtn.MouseButton1Click:Connect(function()
+                    selected = opt
+                    StatusLabel.Text = selected
+                    callback(selected)
+                    
+                    -- Schließen nach Auswahl
+                    isOpened = false
+                    TweenService:Create(DropFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+                    TweenService:Create(Arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+                end)
+            end
+
+            -- Öffnen/Schließen Logik
+            Trigger.MouseButton1Click:Connect(function()
+                isOpened = not isOpened
+                local targetHeight = isOpened and math.min(#options * 35 + 50, 200) or 40
+                
+                TweenService:Create(DropFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(1, 0, 0, targetHeight)}):Play()
+                TweenService:Create(OptionList, TweenInfo.new(0.3), {Size = UDim2.new(1, -10, 1, -50)}):Play()
+                TweenService:Create(Arrow, TweenInfo.new(0.3), {Rotation = isOpened and 180 or 0}):Play()
+            end)
+        end
+
         function TabFuncs:Button(text, callback)
             local BtnFrame = Utility:Create("Frame", {
                 Size = UDim2.new(1, 0, 0, 40),
