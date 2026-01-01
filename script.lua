@@ -565,6 +565,167 @@ function Titanium:Window(Config)
             end)
         end
 
+        function TabFuncs:Colorpicker(text, default, callback)
+            local color = default or Color3.fromRGB(255, 255, 255)
+            local h, s, v = color:ToHSV()
+            local isOpened = false
+            local isDraggingColor = false
+            local isDraggingHue = false
+
+            -- Hauptrahmen
+            local CPFrame = Utility:Create("Frame", {
+                Size = UDim2.new(1, -12, 0, 40),
+                BackgroundColor3 = Titanium.Settings.Colors.Element,
+                ClipsDescendants = true,
+                Parent = Page
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = CPFrame})
+
+            -- Label
+            Utility:Create("TextLabel", {
+                Text = text,
+                Font = Titanium.Settings.Font.Medium,
+                TextSize = 13,
+                TextColor3 = Titanium.Settings.Colors.Text,
+                Size = UDim2.new(1, -60, 0, 40),
+                Position = UDim2.new(0, 12, 0, 0),
+                BackgroundTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = CPFrame
+            })
+
+            -- Vorschau Button (Rechts)
+            local Preview = Utility:Create("TextButton", {
+                Size = UDim2.new(0, 40, 0, 24),
+                Position = UDim2.new(1, -52, 0, 8),
+                BackgroundColor3 = color,
+                Text = "",
+                AutoButtonColor = false,
+                Parent = CPFrame
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Preview})
+            Utility:Create("UIStroke", {Color = Titanium.Settings.Colors.Stroke, Thickness = 1, Parent = Preview})
+
+            -- Container für den Picker (Versteckt bis ausgeklappt)
+            local PickerContainer = Utility:Create("Frame", {
+                Size = UDim2.new(1, -24, 0, 110),
+                Position = UDim2.new(0, 12, 0, 45),
+                BackgroundTransparency = 1,
+                Parent = CPFrame
+            })
+
+            -- Saturation/Value Matrix (Großes Feld)
+            local ColorMatrix = Utility:Create("ImageButton", {
+                Size = UDim2.new(1, -30, 1, 0),
+                Image = "rbxassetid://4155801252", -- Standard Gradient Overlay
+                BackgroundColor3 = Color3.fromHSV(h, 1, 1),
+                AutoButtonColor = false,
+                Parent = PickerContainer
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = ColorMatrix})
+
+            local MatrixCursor = Utility:Create("Frame", {
+                Size = UDim2.new(0, 10, 0, 10),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(s, 0, 1 - v, 0),
+                BackgroundColor3 = Color3.new(1,1,1),
+                Parent = ColorMatrix
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = MatrixCursor})
+
+            -- Hue Bar (Regenbogen Balken rechts)
+            local HueBar = Utility:Create("ImageButton", {
+                Size = UDim2.new(0, 20, 1, 0),
+                Position = UDim2.new(1, -20, 0, 0),
+                Image = "rbxassetid://5028857472", -- Vertical Rainbow
+                BackgroundTransparency = 1,
+                AutoButtonColor = false,
+                Parent = PickerContainer
+            })
+            Utility:Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = HueBar})
+
+            local HueCursor = Utility:Create("Frame", {
+                Size = UDim2.new(1, 0, 0, 2),
+                Position = UDim2.new(0, 0, h, 0), -- Hue ist invertiert auf manchen Images, hier normal
+                BackgroundColor3 = Color3.new(1,1,1),
+                BorderSizePixel = 0,
+                Parent = HueBar
+            })
+
+            -- Logik Funktionen
+            local function UpdateColor()
+                color = Color3.fromHSV(h, s, v)
+                TweenService:Create(Preview, TweenInfo.new(0.1), {BackgroundColor3 = color}):Play()
+                TweenService:Create(ColorMatrix, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromHSV(h, 1, 1)}):Play()
+                callback(color)
+            end
+
+            local function UpdateHue(input)
+                local y = math.clamp((input.Position.Y - HueBar.AbsolutePosition.Y) / HueBar.AbsoluteSize.Y, 0, 1)
+                h = 1 - y -- Oft muss Hue invertiert werden, probier 'y' wenn es falsch rum ist
+                TweenService:Create(HueCursor, TweenInfo.new(0.1), {Position = UDim2.new(0, 0, y, 0)}):Play()
+                UpdateColor()
+            end
+
+            local function UpdateMatrix(input)
+                local x = math.clamp((input.Position.X - ColorMatrix.AbsolutePosition.X) / ColorMatrix.AbsoluteSize.X, 0, 1)
+                local y = math.clamp((input.Position.Y - ColorMatrix.AbsolutePosition.Y) / ColorMatrix.AbsoluteSize.Y, 0, 1)
+                s = x
+                v = 1 - y
+                TweenService:Create(MatrixCursor, TweenInfo.new(0.1), {Position = UDim2.new(s, 0, 1-v, 0)}):Play()
+                UpdateColor()
+            end
+
+            -- Hue Input
+            HueBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDraggingHue = true
+                    UpdateHue(input)
+                end
+            end)
+
+            -- Matrix Input
+            ColorMatrix.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDraggingColor = true
+                    UpdateMatrix(input)
+                end
+            end)
+
+            -- Global Input Ended / Changed
+            InputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDraggingHue = false
+                    isDraggingColor = false
+                end
+            end)
+
+            InputService.InputChanged:Connect(function(input)
+                if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    if isDraggingHue then UpdateHue(input) end
+                    if isDraggingColor then UpdateMatrix(input) end
+                end
+            end)
+
+            -- Expand / Collapse Logik (Klick auf Preview oder Header)
+            local function Toggle()
+                isOpened = not isOpened
+                local targetHeight = isOpened and 165 or 40
+                TweenService:Create(CPFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(1, -12, 0, targetHeight)}):Play()
+            end
+
+            Preview.MouseButton1Click:Connect(Toggle)
+            
+            -- Unsichtbarer Button über dem Text, damit man auch dort klicken kann zum Öffnen
+            local OpenBtn = Utility:Create("TextButton", {
+                Size = UDim2.new(1, -60, 0, 40),
+                BackgroundTransparency = 1,
+                Text = "",
+                Parent = CPFrame
+            })
+            OpenBtn.MouseButton1Click:Connect(Toggle)
+        end
+
         function TabFuncs:Toggle(text, default, callback)
             local toggled = default or false
             
